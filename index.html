@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SecureIT Pro | Портал регистрации инцидентов</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            margin: 0;
+            padding: 24px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* главный контейнер с асинхронным появлением */
+        .app-container {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        /* хедер */
+        .portal-header {
+            background: #0b2b3b;
+            color: white;
+            padding: 1.2rem 2rem;
+        }
+        .portal-header h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.7rem;
+            letter-spacing: -0.3px;
+        }
+        .portal-header p {
+            margin: 0.4rem 0 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        /* две колонки: форма + таблица */
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .form-card {
+            flex: 1.2;
+            min-width: 320px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            transition: 0.2s;
+        }
+
+        .table-card {
+            flex: 2;
+            min-width: 400px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #1a2c3e;
+            font-size: 0.85rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background: #fefefe;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+
+        .invalid-field {
+            border-color: #e53e3e;
+            background-color: #fff5f5;
+        }
+
+        .error-msg {
+            color: #e53e3e;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            display: block;
+        }
+
+        button {
+            background: #2c7da0;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        button:disabled {
+            background: #b0c4d9;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        button:not(:disabled):hover {
+            background: #1f5e7a;
+            transform: scale(0.98);
+        }
+
+        .message-banner {
+            margin-top: 1rem;
+            background: #e9f7ef;
+            border-left: 5px solid #2e7d32;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            color: #1e4620;
+            transition: 0.2s;
+        }
+
+        .hidden-message {
+            display: none;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e9edf2;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #1e2a3a;
+        }
+
+        .status-badge {
+            background: #e6f7ff;
+            color: #0077b6;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .skeleton-loader {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        hr {
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 850px) {
+            .dashboard {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="appContainer">
+    <div class="portal-header">
+        <h1>🛡️ SecureIT Pro</h1>
+        <p>Портал регистрации инцидентов информационной безопасности</p>
+    </div>
+
+    <!-- основная область с асинхронной загрузкой (имитация) -->
+    <div id="dynamicContent">
+        <div class="skeleton-loader" id="loaderPlaceholder">⏳ Загрузка интерфейса безопасности...</div>
+        <div id="mainInterface" class="hidden">
+            <div class="dashboard">
+                <!-- ФОРМА РЕГИСТРАЦИИ ИНЦИДЕНТА -->
+                <div class="form-card">
+                    <h3 style="margin-top: 0;">📋 Зарегистрировать инцидент</h3>
+                    <div class="form-group">
+                        <label>📌 Incident Title *</label>
+                        <input type="text" id="incidentTitle" placeholder="Краткое описание инцидента (min 5 симв.)">
+                        <div class="error-msg" id="titleError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>👤 Reporter *</label>
+                        <input type="text" id="reporter" placeholder="Сотрудник, обнаруживший инцидент">
+                        <div class="error-msg" id="reporterError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>⚙️ System *</label>
+                        <select id="systemSelect">
+                            <option value="" disabled selected>-- Выберите систему --</option>
+                            <option value="Authentication Server">Authentication Server</option>
+                            <option value="Database">Database</option>
+                            <option value="Web Portal">Web Portal</option>
+                            <option value="Internal Network">Internal Network</option>
+                        </select>
+                        <div class="error-msg" id="systemError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>⚠️ Severity *</label>
+                        <select id="severitySelect">
+                            <option value="" disabled selected>-- Уровень критичности --</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                        <div class="error-msg" id="severityError"></div>
+                    </div>
+
+                    <!-- динамическая кнопка с изменяющимся ID -->
+                    <button id="dynamicReportBtn" disabled>🚨 Report Incident</button>
+
+                    <!-- информационная метка для сообщений -->
+                    <div id="formFeedback" class="message-banner hidden-message"></div>
+                </div>
+
+                <!-- ТАБЛИЦА ИНЦИДЕНТОВ -->
+                <div class="table-card">
+                    <h3 style="margin-top: 0;">📊 Журнал инцидентов</h3>
+                    <div class="table-wrapper">
+                        <table id="incidentTable">
+                            <thead>
+                                <tr><th>ID</th><th>Title</th><th>Reporter</th><th>System</th><th>Severity</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr><td colspan="6" style="text-align:center;">Загрузка данных...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- НАЧАЛЬНЫЕ ТЕСТОВЫЕ ДАННЫЕ (5 инцидентов) ----------
+    let incidents = [
+        { id: 1, title: "Unauthorized access attempt", reporter: "Ivan Petrov", system: "Authentication Server", severity: "Critical", status: "Reported" },
+        { id: 2, title: "Suspicious database query", reporter: "Anna Smirnova", system: "Database", severity: "High", status: "Reported" },
+        { id: 3, title: "Phishing email detected", reporter: "Dmitry Orlov", system: "Web Portal", severity: "Medium", status: "Reported" },
+        { id: 4, title: "Unusual network traffic", reporter: "Olga Ivanova", system: "Internal Network", severity: "High", status: "Reported" },
+        { id: 5, title: "Failed login attempts", reporter: "Sergey Kuznetsov", system: "Authentication Server", severity: "Critical", status: "Reported" }
+    ];
+    let nextId = 6;   // автоинкремент для новых инцидентов
+
+    // DOM элементы
+    const titleInput = document.getElementById('incidentTitle');
+    const reporterInput = document.getElementById('reporter');
+    const systemSelect = document.getElementById('systemSelect');
+    const severitySelect = document.getElementById('severitySelect');
+    const reportBtn = document.getElementById('dynamicReportBtn');
+    const titleError = document.getElementById('titleError');
+    const reporterError = document.getElementById('reporterError');
+    const systemError = document.getElementById('systemError');
+    const severityError = document.getElementById('severityError');
+    const formFeedback = document.getElementById('formFeedback');
+    const tableBody = document.getElementById('tableBody');
+
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ВАЛИДАЦИИ ----------
+    function validateTitle(value) {
+        if (!value.trim()) return "Incident Title is required";
+        if (value.trim().length < 5) return "Incident Title must contain at least 5 characters";
+        return "";
+    }
+
+    function validateReporter(value) {
+        if (!value.trim()) return "Reporter is required";
+        if (value.trim().length < 3) return "Reporter must contain at least 3 characters";
+        // Разрешены: буквы (любые), пробелы, дефис, апостроф (имитация реальных имён)
+        const lettersAndSpace = /^[A-Za-zА-Яа-яёЁ\s\-']+$/;
+        if (!lettersAndSpace.test(value.trim())) {
+            return "Reporter field must contain only letters, spaces or hyphens";
+        }
+        return "";
+    }
+
+    function validateSystem() {
+        return systemSelect.value ? "" : "Please select a system";
+    }
+
+    function validateSeverity() {
+        return severitySelect.value ? "" : "Please select severity level";
+    }
+
+    function updateFormValidationAndButton() {
+        let titleValid = validateTitle(titleInput.value) === "";
+        let reporterValid = validateReporter(reporterInput.value) === "";
+        let systemValid = validateSystem() === "";
+        let severityValid = validateSeverity() === "";
+
+        // Показываем ошибки под полями (опционально, дружелюбно)
+        titleError.innerText = validateTitle(titleInput.value);
+        reporterError.innerText = validateReporter(reporterInput.value);
+        systemError.innerText = validateSystem();
+        severityError.innerText = validateSeverity();
+
+        // Визуальная подсветка некорректных полей
+        titleInput.classList.toggle('invalid-field', !titleValid);
+        reporterInput.classList.toggle('invalid-field', !reporterValid);
+        systemSelect.classList.toggle('invalid-field', !systemValid);
+        severitySelect.classList.toggle('invalid-field', !severityValid);
+
+        const isFormValid = titleValid && reporterValid && systemValid && severityValid;
+        reportBtn.disabled = !isFormValid;
+        return isFormValid;
+    }
+
+    // Очистка формы (поля ввода, сброс select)
+    function resetFormFields() {
+        titleInput.value = "";
+        reporterInput.value = "";
+        systemSelect.value = "";
+        severitySelect.value = "";
+        // убираем классы ошибок
+        updateFormValidationAndButton();
+        // дополнительно чистим сообщения
+        titleError.innerText = "";
+        reporterError.innerText = "";
+        systemError.innerText = "";
+        severityError.innerText = "";
+    }
+
+    // Отрисовка таблицы (синхронная версия, но вызовем с задержкой для имитации асинхронности)
+    function renderTableSync() {
+        if (!tableBody) return;
+        tableBody.innerHTML = "";
+        if (incidents.length === 0) {
+            const row = tableBody.insertRow();
+            row.insertCell().colSpan = 6;
+            row.insertCell().innerHTML = "Нет зарегистрированных инцидентов";
+            return;
+        }
+        incidents.forEach(inc => {
+            const row = tableBody.insertRow();
+            row.insertCell().innerText = inc.id;
+            row.insertCell().innerText = inc.title;
+            row.insertCell().innerText = inc.reporter;
+            row.insertCell().innerText = inc.system;
+            row.insertCell().innerText = inc.severity;
+            const statusCell = row.insertCell();
+            statusCell.innerHTML = `<span class="status-badge">${inc.status}</span>`;
+        });
+    }
+
+    // Асинхронное обновление таблицы с задержкой (имитация network / async)
+    function updateTableWithDelay(delayMs = 800) {
+        return new Promise((resolve) => {
+            // Показываем индикатор загрузки внутри таблицы (скилетон)
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">⏳ Обновление таблицы инцидентов...</td></tr>`;
+            setTimeout(() => {
+                renderTableSync();
+                resolve(true);
+            }, delayMs);
+        });
+    }
+
+    // Показать сообщение об успехе (с задержкой появления и автоисчезновением)
+    let messageTimeout = null;
+    function showSuccessMessageWithDelay(message, showDelay = 1200, hideDelay = 2800) {
+        if (messageTimeout) clearTimeout(messageTimeout);
+        formFeedback.classList.add('hidden-message');
+        formFeedback.innerText = "";
+        setTimeout(() => {
+            formFeedback.innerText = message;
+            formFeedback.classList.remove('hidden-message');
+            // автоисчезновение
+            messageTimeout = setTimeout(() => {
+                formFeedback.classList.add('hidden-message');
+                messageTimeout = null;
+            }, hideDelay);
+        }, showDelay);
+    }
+
+    // ---------- ОСНОВНАЯ ЛОГИКА ОТПРАВКИ ФОРМЫ ----------
+    async function submitIncident() {
+        // финальная проверка (хотя disabled блокирует, но для надежности)
+        const isValid = updateFormValidationAndButton();
+        if (!isValid) {
+            showSuccessMessageWithDelay("❌ Форма содержит ошибки. Проверьте поля.", 100, 2500);
+            return;
+        }
+
+        // собираем данные
+        const newTitle = titleInput.value.trim();
+        const newReporter = reporterInput.value.trim();
+        const newSystem = systemSelect.value;
+        const newSeverity = severitySelect.value;
+
+        // создаём новый объект инцидента
+        const newIncident = {
+            id: nextId++,
+            title: newTitle,
+            reporter: newReporter,
+            system: newSystem,
+            severity: newSeverity,
+            status: "Reported"
+        };
+
+        // добавляем в массив (имитация сохранения)
+        incidents.push(newIncident);
+
+        // 1. Очищаем форму синхронно
+        resetFormFields();
+
+        // 2. Показываем сообщение об отправке с задержкой (1-2 сек)
+        showSuccessMessageWithDelay(`✅ Инцидент "${newTitle}" зарегистрирован!`, 1200, 3000);
+
+        // 3. Обновляем таблицу асинхронно (имитация задержки подгрузки)
+        await updateTableWithDelay(900);  // задержка около 0.9 сек
+
+        // 4. Дополнительный лог в консоль (для отладки)
+        console.log(`[${new Date().toLocaleTimeString()}] Зарегистрирован инцидент #${newIncident.id} - ${newTitle}`);
+    }
+
+    // Устанавливаем динамический ID для кнопки (изменяющийся при каждой загрузке страницы)
+    function setDynamicButtonId() {
+        const timestamp = Date.now();
+        const randomSuffix = Math.floor(Math.random() * 10000);
+        const dynamicId = `btn_report_${timestamp}_${randomSuffix}`;
+        reportBtn.id = dynamicId;
+        console.log(`[Dynamic ID] Кнопка получила ID: ${dynamicId}`);
+    }
+
+    // ---------- ИМИТАЦИЯ АСИНХРОННОГО ПОЯВЛЕНИЯ ФОРМЫ И ТАБЛИЦЫ ----------
+    function simulateAsyncLoading() {
+        const loader = document.getElementById('loaderPlaceholder');
+        const mainInterface = document.getElementById('mainInterface');
+        // Изначально интерфейс скрыт, показываем лоадер
+        loader.classList.remove('hidden');
+        mainInterface.classList.add('hidden');
+
+        // Через 1.2 секунды "загружаем" форму и таблицу
+        setTimeout(() => {
+            loader.classList.add('hidden');
+            mainInterface.classList.remove('hidden');
+            // Первоначальная отрисовка таблицы (сразу видим 5 инцидентов)
+            renderTableSync();
+            // запускаем валидацию (кнопка disabled т.к. поля пустые)
+            updateFormValidationAndButton();
+        }, 1200);
+    }
+
+    // ---------- ПРИВЯЗКА СОБЫТИЙ ----------
+    function bindEvents() {
+        titleInput.addEventListener('input', updateFormValidationAndButton);
+        reporterInput.addEventListener('input', updateFormValidationAndButton);
+        systemSelect.addEventListener('change', updateFormValidationAndButton);
+        severitySelect.addEventListener('change', updateFormValidationAndButton);
+        reportBtn.addEventListener('click', submitIncident);
+    }
+
+    // Инициализация страницы
+    function init() {
+        setDynamicButtonId();     // динамический id кнопки (выполняется один раз при загрузке)
+        bindEvents();
+        simulateAsyncLoading();   // асинхронное появление формы и таблицы
+    }
+
+    init();
+</script>
+</body>
+</html>

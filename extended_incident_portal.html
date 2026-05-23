@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SecureIT Pro | Расследование инцидентов</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            margin: 0;
+            padding: 24px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .portal-header {
+            background: #0b2b3b;
+            color: white;
+            padding: 1.2rem 2rem;
+        }
+        .portal-header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+        }
+        .portal-header p {
+            margin: 0.4rem 0 0;
+            opacity: 0.8;
+        }
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .form-card {
+            flex: 1.2;
+            min-width: 300px;
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .table-card {
+            flex: 2;
+            min-width: 500px;
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2c7da0;
+        }
+        .invalid-field {
+            border-color: #e53e3e;
+            background-color: #fff5f5;
+        }
+        .error-msg {
+            color: #e53e3e;
+            font-size: 0.75rem;
+            margin-top: 5px;
+        }
+        button {
+            background: #2c7da0;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:disabled {
+            background: #b0c4d9;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+        button:not(:disabled):hover {
+            background: #1f5e7a;
+            transform: scale(0.98);
+        }
+        .message-banner {
+            margin-top: 1rem;
+            background: #e9f7ef;
+            border-left: 5px solid #2e7d32;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .hidden-message {
+            display: none;
+        }
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .action-buttons button {
+            width: auto;
+            margin: 0;
+            padding: 8px 18px;
+        }
+        .filter-search {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-search select, .filter-search input {
+            width: auto;
+            min-width: 160px;
+            margin: 0;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e9edf2;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+        }
+        .selected-row {
+            background-color: #e0f2fe;
+            cursor: pointer;
+        }
+        tr {
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-Reported { background: #fef9e3; color: #b45309; }
+        .status-Investigating { background: #e0f2fe; color: #0369a1; }
+        .status-Resolved { background: #e0f2e9; color: #2b6e3c; }
+        .loader {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .hidden {
+            display: none;
+        }
+        @media (max-width: 850px) {
+            .dashboard { flex-direction: column; }
+            .controls-bar { flex-direction: column; align-items: stretch; }
+            .action-buttons { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="portal-header">
+        <h1>🛡️ SecureIT Pro | Расследование инцидентов</h1>
+        <p>Управление жизненным циклом инцидентов безопасности</p>
+    </div>
+    <div id="mainContent">
+        <div class="dashboard">
+            <!-- ФОРМА ДОБАВЛЕНИЯ ИНЦИДЕНТА -->
+            <div class="form-card">
+                <h3 style="margin-top:0;">📝 Зарегистрировать инцидент</h3>
+                <div class="form-group">
+                    <label>📌 Incident Title *</label>
+                    <input type="text" id="incidentTitle" placeholder="Краткое описание (мин. 5 симв.)">
+                    <div class="error-msg" id="titleError"></div>
+                </div>
+                <div class="form-group">
+                    <label>👤 Reporter *</label>
+                    <input type="text" id="reporter" placeholder="ФИО сотрудника">
+                    <div class="error-msg" id="reporterError"></div>
+                </div>
+                <div class="form-group">
+                    <label>⚙️ System *</label>
+                    <select id="systemSelect">
+                        <option value="" disabled selected>-- Выберите систему --</option>
+                        <option value="Authentication Server">Authentication Server</option>
+                        <option value="Database">Database</option>
+                        <option value="Web Portal">Web Portal</option>
+                        <option value="Internal Network">Internal Network</option>
+                    </select>
+                    <div class="error-msg" id="systemError"></div>
+                </div>
+                <div class="form-group">
+                    <label>⚠️ Severity *</label>
+                    <select id="severitySelect">
+                        <option value="" disabled selected>-- Уровень критичности --</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                    <div class="error-msg" id="severityError"></div>
+                </div>
+                <button id="reportIncidentBtn" disabled>🚨 Report Incident</button>
+                <div id="formFeedback" class="message-banner hidden-message"></div>
+            </div>
+
+            <!-- ТАБЛИЦА И УПРАВЛЕНИЕ -->
+            <div class="table-card">
+                <div class="controls-bar">
+                    <div class="action-buttons">
+                        <button id="startInvestigationBtn" disabled>🔍 Start Investigation</button>
+                        <button id="closeIncidentBtn" disabled>✅ Close Incident</button>
+                    </div>
+                    <div class="filter-search">
+                        <select id="filterSeverity">
+                            <option value="All">All</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                        <input type="text" id="searchTitle" placeholder="Search by Title" style="width: 180px;">
+                    </div>
+                </div>
+                <div class="table-wrapper" id="tableWrapper">
+                    <table id="incidentTable">
+                        <thead>
+                            <tr><th>ID</th><th>Title</th><th>Reporter</th><th>System</th><th>Severity</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="6" style="text-align:center;">Загрузка инцидентов...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- НАЧАЛЬНЫЕ ДАННЫЕ (10 инцидентов из варианта) ----------
+    let incidents = [
+        { id: 1, title: "Unauthorized access attempt", reporter: "Ivan Petrov", system: "Authentication Server", severity: "Critical", status: "Reported" },
+        { id: 2, title: "Suspicious database query", reporter: "Anna Smirnova", system: "Database", severity: "High", status: "Reported" },
+        { id: 3, title: "Phishing email detected", reporter: "Dmitry Orlov", system: "Web Portal", severity: "Medium", status: "Reported" },
+        { id: 4, title: "Unusual network traffic", reporter: "Olga Ivanova", system: "Internal Network", severity: "High", status: "Reported" },
+        { id: 5, title: "Failed login attempts", reporter: "Sergey Kuznetsov", system: "Authentication Server", severity: "Critical", status: "Reported" },
+        { id: 6, title: "Malware detected on workstation", reporter: "Elena Volkova", system: "Internal Network", severity: "Critical", status: "Reported" },
+        { id: 7, title: "Data exfiltration attempt", reporter: "Pavel Morozov", system: "Database", severity: "Critical", status: "Reported" },
+        { id: 8, title: "Privilege escalation attempt", reporter: "Irina Lebedeva", system: "Authentication Server", severity: "High", status: "Reported" },
+        { id: 9, title: "Suspicious API call", reporter: "Maxim Kozlov", system: "Web Portal", severity: "Medium", status: "Reported" },
+        { id: 10, title: "Unauthorized file access", reporter: "Natalia Sokolova", system: "Database", severity: "High", status: "Reported" }
+    ];
+    let nextId = 11;
+
+    // Состояние фильтрации, поиска и выбранной строки
+    let currentFilter = "All";
+    let currentSearch = "";
+    let selectedRowId = null;          // ID выбранного инцидента
+    let isLoading = false;             // для имитации асинхронности
+
+    // DOM элементы
+    const titleInput = document.getElementById('incidentTitle');
+    const reporterInput = document.getElementById('reporter');
+    const systemSelect = document.getElementById('systemSelect');
+    const severitySelect = document.getElementById('severitySelect');
+    const reportBtn = document.getElementById('reportIncidentBtn');
+    const startInvBtn = document.getElementById('startInvestigationBtn');
+    const closeIncidentBtn = document.getElementById('closeIncidentBtn');
+    const filterSelect = document.getElementById('filterSeverity');
+    const searchInput = document.getElementById('searchTitle');
+    const tableBody = document.getElementById('tableBody');
+    const formFeedback = document.getElementById('formFeedback');
+    const titleError = document.getElementById('titleError');
+    const reporterError = document.getElementById('reporterError');
+    const systemError = document.getElementById('systemError');
+    const severityError = document.getElementById('severityError');
+
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ВАЛИДАЦИИ ФОРМЫ ----------
+    function validateTitle(value) {
+        if (!value.trim()) return "Incident Title is required";
+        if (value.trim().length < 5) return "Incident Title must contain at least 5 characters";
+        return "";
+    }
+    function validateReporter(value) {
+        if (!value.trim()) return "Reporter is required";
+        if (value.trim().length < 3) return "Reporter must contain at least 3 characters";
+        const lettersAndSpace = /^[A-Za-zА-Яа-яёЁ\s\-']+$/;
+        if (!lettersAndSpace.test(value.trim())) return "Reporter must contain only letters, spaces or hyphens";
+        return "";
+    }
+    function validateSystem() { return systemSelect.value ? "" : "Please select a system"; }
+    function validateSeverity() { return severitySelect.value ? "" : "Please select severity level"; }
+
+    function updateFormValidation() {
+        let titleValid = validateTitle(titleInput.value) === "";
+        let reporterValid = validateReporter(reporterInput.value) === "";
+        let systemValid = validateSystem() === "";
+        let severityValid = validateSeverity() === "";
+        titleError.innerText = validateTitle(titleInput.value);
+        reporterError.innerText = validateReporter(reporterInput.value);
+        systemError.innerText = validateSystem();
+        severityError.innerText = validateSeverity();
+        titleInput.classList.toggle('invalid-field', !titleValid);
+        reporterInput.classList.toggle('invalid-field', !reporterValid);
+        systemSelect.classList.toggle('invalid-field', !systemValid);
+        severitySelect.classList.toggle('invalid-field', !severityValid);
+        reportBtn.disabled = !(titleValid && reporterValid && systemValid && severityValid);
+        return reportBtn.disabled === false;
+    }
+
+    function resetForm() {
+        titleInput.value = "";
+        reporterInput.value = "";
+        systemSelect.value = "";
+        severitySelect.value = "";
+        updateFormValidation();
+        titleError.innerText = "";
+        reporterError.innerText = "";
+        systemError.innerText = "";
+        severityError.innerText = "";
+    }
+
+    // ---------- ФИЛЬТРАЦИЯ И ПОИСК (возвращает отфильтрованный массив) ----------
+    function getFilteredIncidents() {
+        let filtered = incidents.filter(inc => {
+            if (currentFilter !== "All" && inc.severity !== currentFilter) return false;
+            if (currentSearch.trim() !== "" && !inc.title.toLowerCase().includes(currentSearch.toLowerCase())) return false;
+            return true;
+        });
+        return filtered;
+    }
+
+    // Асинхронная отрисовка таблицы с задержкой (имитация загрузки)
+    let renderTimeout = null;
+    function renderTableWithDelay() {
+        if (isLoading) return;
+        if (renderTimeout) clearTimeout(renderTimeout);
+        // Показать скелетон
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">⏳ Загрузка данных...</td></tr>`;
+        isLoading = true;
+        renderTimeout = setTimeout(() => {
+            const filtered = getFilteredIncidents();
+            tableBody.innerHTML = "";
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No incidents found</td></tr>`;
+            } else {
+                filtered.forEach(inc => {
+                    const row = tableBody.insertRow();
+                    row.setAttribute('data-id', inc.id);
+                    if (selectedRowId === inc.id) row.classList.add('selected-row');
+                    row.insertCell().innerText = inc.id;
+                    row.insertCell().innerText = inc.title;
+                    row.insertCell().innerText = inc.reporter;
+                    row.insertCell().innerText = inc.system;
+                    row.insertCell().innerText = inc.severity;
+                    const statusCell = row.insertCell();
+                    statusCell.innerHTML = `<span class="status-badge status-${inc.status}">${inc.status}</span>`;
+                    // клик по строке
+                    row.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectRow(inc.id);
+                    });
+                });
+            }
+            isLoading = false;
+            // после отрисовки обновляем состояние кнопок управления
+            updateActionButtonsState();
+        }, 800);  // задержка 0.8 сек для имитации асинхронности
+    }
+
+    // Выбор строки
+    function selectRow(id) {
+        if (selectedRowId === id) return;
+        selectedRowId = id;
+        updateActionButtonsState();
+        renderTableWithDelay();  // перерисуем с подсветкой
+    }
+
+    // Обновление disabled для кнопок Start Investigation и Close Incident
+    function updateActionButtonsState() {
+        if (!selectedRowId) {
+            startInvBtn.disabled = true;
+            closeIncidentBtn.disabled = true;
+            return;
+        }
+        const incident = incidents.find(inc => inc.id === selectedRowId);
+        if (!incident) {
+            startInvBtn.disabled = true;
+            closeIncidentBtn.disabled = true;
+            return;
+        }
+        // Start Investigation доступна только если статус "Reported"
+        startInvBtn.disabled = (incident.status !== "Reported");
+        // Close Incident доступна если статус не "Resolved"
+        closeIncidentBtn.disabled = (incident.status === "Resolved");
+    }
+
+    // Асинхронное изменение статуса с задержкой и обновлением таблицы
+    function changeStatusWithDelay(incidentId, newStatus, successMessage) {
+        if (isLoading) return Promise.reject("Already loading");
+        return new Promise((resolve) => {
+            // Имитация задержки API
+            setTimeout(() => {
+                const inc = incidents.find(i => i.id === incidentId);
+                if (inc) {
+                    inc.status = newStatus;
+                    // Если после изменения статуса строка не подходит под текущий фильтр/поиск, сбросим выбранную строку?
+                    const filteredIds = getFilteredIncidents().map(i => i.id);
+                    if (!filteredIds.includes(incidentId)) {
+                        selectedRowId = null;
+                    }
+                    renderTableWithDelay();
+                    showTemporaryMessage(successMessage, 2000);
+                    resolve();
+                } else {
+                    showTemporaryMessage("Ошибка: инцидент не найден", 2000);
+                    resolve();
+                }
+                updateActionButtonsState();
+            }, 1200); // задержка 1.2 сек
+        });
+    }
+
+    function showTemporaryMessage(msg, duration = 2500) {
+        formFeedback.classList.add('hidden-message');
+        formFeedback.innerText = "";
+        setTimeout(() => {
+            formFeedback.innerText = msg;
+            formFeedback.classList.remove('hidden-message');
+            setTimeout(() => {
+                formFeedback.classList.add('hidden-message');
+            }, duration);
+        }, 100);
+    }
+
+    // Добавление нового инцидента (через форму)
+    async function addIncident() {
+        if (!updateFormValidation()) {
+            showTemporaryMessage("❌ Форма содержит ошибки. Проверьте поля.", 2000);
+            return;
+        }
+        const newTitle = titleInput.value.trim();
+        const newReporter = reporterInput.value.trim();
+        const newSystem = systemSelect.value;
+        const newSeverity = severitySelect.value;
+        const newIncident = {
+            id: nextId++,
+            title: newTitle,
+            reporter: newReporter,
+            system: newSystem,
+            severity: newSeverity,
+            status: "Reported"
+        };
+        incidents.push(newIncident);
+        resetForm();
+        showTemporaryMessage(`✅ Инцидент "${newTitle}" зарегистрирован`, 2000);
+        // обновляем таблицу с задержкой (асинхронность)
+        await new Promise(r => setTimeout(r, 500));
+        renderTableWithDelay();
+        // сбросить выбранную строку
+        selectedRowId = null;
+        updateActionButtonsState();
+    }
+
+    // Обработчики кнопок управления
+    function onStartInvestigation() {
+        if (!selectedRowId) return;
+        const inc = incidents.find(i => i.id === selectedRowId);
+        if (inc && inc.status === "Reported") {
+            changeStatusWithDelay(selectedRowId, "Investigating", `🔍 Расследование инцидента "${inc.title}" начато`);
+        }
+    }
+
+    function onCloseIncident() {
+        if (!selectedRowId) return;
+        const inc = incidents.find(i => i.id === selectedRowId);
+        if (inc && inc.status !== "Resolved") {
+            changeStatusWithDelay(selectedRowId, "Resolved", `✅ Инцидент "${inc.title}" закрыт (Resolved)`);
+        }
+    }
+
+    // Фильтр и поиск (с задержкой)
+    let filterTimeout = null;
+    function applyFilterAndSearch() {
+        if (filterTimeout) clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(() => {
+            currentFilter = filterSelect.value;
+            currentSearch = searchInput.value;
+            // Сбросить выбранную строку, если она не попадает в отфильтрованный список
+            const filteredIds = getFilteredIncidents().map(i => i.id);
+            if (selectedRowId && !filteredIds.includes(selectedRowId)) {
+                selectedRowId = null;
+            }
+            renderTableWithDelay();
+            updateActionButtonsState();
+        }, 400);
+    }
+
+    // Инициализация событий
+    function bindEvents() {
+        titleInput.addEventListener('input', updateFormValidation);
+        reporterInput.addEventListener('input', updateFormValidation);
+        systemSelect.addEventListener('change', updateFormValidation);
+        severitySelect.addEventListener('change', updateFormValidation);
+        reportBtn.addEventListener('click', addIncident);
+        startInvBtn.addEventListener('click', onStartInvestigation);
+        closeIncidentBtn.addEventListener('click', onCloseIncident);
+        filterSelect.addEventListener('change', applyFilterAndSearch);
+        searchInput.addEventListener('input', applyFilterAndSearch);
+    }
+
+    // Первоначальная загрузка
+    function init() {
+        bindEvents();
+        updateFormValidation();
+        // начальные фильтры: All, пустой поиск
+        currentFilter = "All";
+        currentSearch = "";
+        filterSelect.value = "All";
+        searchInput.value = "";
+        renderTableWithDelay();
+        selectedRowId = null;
+        updateActionButtonsState();
+    }
+
+    init();
+</script>
+</body>
+</html>

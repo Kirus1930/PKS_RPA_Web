@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Data;
 using System.Drawing;
@@ -21,26 +22,23 @@ namespace DeliveryApp
             InitializeComponent();
             SetupDataTable();
             UpdateAddButtonState();
+            this.Load += Form1_Load;  // подписываемся на событие загрузки формы
         }
 
         private void InitializeComponent()
         {
-            // Настройка формы
             this.Text = "Delivery Registration System";
             this.Size = new Size(800, 550);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 
-            // ========== Метки и поля ввода ==========
-            // Package
+            // Метки
             lblPackage = new Label() { Text = "Package:", Location = new Point(30, 30), Size = new Size(100, 25) };
             txtPackage = new TextBox() { Location = new Point(140, 30), Size = new Size(220, 25) };
 
-            // Driver
             lblDriver = new Label() { Text = "Driver:", Location = new Point(30, 70), Size = new Size(100, 25) };
             txtDriver = new TextBox() { Location = new Point(140, 70), Size = new Size(220, 25) };
 
-            // Delivery Type
             lblDeliveryType = new Label() { Text = "Delivery Type:", Location = new Point(30, 110), Size = new Size(100, 25) };
             cboDeliveryType = new ComboBox()
             {
@@ -50,7 +48,6 @@ namespace DeliveryApp
             };
             cboDeliveryType.Items.AddRange(new object[] { "Standard", "Express", "Same-day" });
 
-            // Priority
             lblPriority = new Label() { Text = "Priority:", Location = new Point(30, 150), Size = new Size(100, 25) };
             cboPriority = new ComboBox()
             {
@@ -60,12 +57,11 @@ namespace DeliveryApp
             };
             cboPriority.Items.AddRange(new object[] { "Low", "Medium", "High" });
 
-            // ========== Кнопки ==========
-            btnAdd = new Button() { Text = "Add", Location = new Point(140, 200), Size = new Size(100, 30), BackColor = Color.LightGreen };
+            // Кнопки
+            btnAdd = new Button() { Text = "Add", Location = new Point(140, 200), Size = new Size(100, 30), BackColor = Color.LightGreen, Enabled = false };
             btnClear = new Button() { Text = "Clear Form", Location = new Point(260, 200), Size = new Size(100, 30), BackColor = Color.LightSalmon };
-            btnAdd.Enabled = false;
 
-            // ========== Таблица ==========
+            // Таблица
             dgvDeliveries = new DataGridView()
             {
                 Location = new Point(30, 260),
@@ -79,7 +75,7 @@ namespace DeliveryApp
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            // ========== Добавляем элементы на форму ==========
+            // Добавляем элементы
             this.Controls.AddRange(new Control[] {
                 lblPackage, txtPackage,
                 lblDriver, txtDriver,
@@ -89,7 +85,7 @@ namespace DeliveryApp
                 dgvDeliveries
             });
 
-            // ========== Подписка на события ==========
+            // События
             txtPackage.TextChanged += OnInputChanged;
             txtDriver.TextChanged += OnInputChanged;
             cboDeliveryType.SelectedIndexChanged += OnInputChanged;
@@ -108,14 +104,23 @@ namespace DeliveryApp
             deliveriesTable.Columns.Add("Priority", typeof(string));
             deliveriesTable.Columns.Add("Status", typeof(string));
             dgvDeliveries.DataSource = deliveriesTable;
+        }
 
-            // Настройка внешнего вида таблицы
-            dgvDeliveries.Columns["ID"].Width = 50;
-            dgvDeliveries.Columns["Package"].Width = 120;
-            dgvDeliveries.Columns["Driver"].Width = 120;
-            dgvDeliveries.Columns["Delivery Type"].Width = 100;
-            dgvDeliveries.Columns["Priority"].Width = 80;
-            dgvDeliveries.Columns["Status"].Width = 80;
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Настройка ширины колонок после того, как форма загрузилась и колонки созданы
+            if (dgvDeliveries.Columns.Contains("ID"))
+                dgvDeliveries.Columns["ID"].Width = 50;
+            if (dgvDeliveries.Columns.Contains("Package"))
+                dgvDeliveries.Columns["Package"].Width = 120;
+            if (dgvDeliveries.Columns.Contains("Driver"))
+                dgvDeliveries.Columns["Driver"].Width = 120;
+            if (dgvDeliveries.Columns.Contains("Delivery Type"))
+                dgvDeliveries.Columns["Delivery Type"].Width = 100;
+            if (dgvDeliveries.Columns.Contains("Priority"))
+                dgvDeliveries.Columns["Priority"].Width = 80;
+            if (dgvDeliveries.Columns.Contains("Status"))
+                dgvDeliveries.Columns["Status"].Width = 80;
         }
 
         private void OnInputChanged(object sender, EventArgs e)
@@ -125,12 +130,10 @@ namespace DeliveryApp
 
         private void UpdateAddButtonState()
         {
-            bool isValid =
-                !string.IsNullOrWhiteSpace(txtPackage.Text) &&
-                !string.IsNullOrWhiteSpace(txtDriver.Text) &&
-                cboDeliveryType.SelectedItem != null &&
-                cboPriority.SelectedItem != null;
-
+            bool isValid = !string.IsNullOrWhiteSpace(txtPackage.Text) &&
+                           !string.IsNullOrWhiteSpace(txtDriver.Text) &&
+                           cboDeliveryType.SelectedItem != null &&
+                           cboPriority.SelectedItem != null;
             btnAdd.Enabled = isValid;
         }
 
@@ -152,7 +155,6 @@ namespace DeliveryApp
             txtDriver.Clear();
             cboDeliveryType.SelectedIndex = -1;
             cboPriority.SelectedIndex = -1;
-            // Кнопка Add станет неактивной автоматически через OnInputChanged
         }
     }
 }

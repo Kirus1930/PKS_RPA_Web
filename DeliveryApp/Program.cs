@@ -8,8 +8,15 @@ namespace DeliveryApp
         [STAThread]
         static void Main()
         {
-            ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
+            try
+            {
+                ApplicationConfiguration.Initialize();
+                Application.Run(new Form1());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Ошибка запуска");
+            }
         }
     }
 }

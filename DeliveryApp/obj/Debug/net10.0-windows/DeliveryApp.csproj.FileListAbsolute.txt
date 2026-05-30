@@ -3,3 +3,13 @@ C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-window
 C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\DeliveryApp.AssemblyInfo.cs
 C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\DeliveryApp.csproj.CoreCompileInputs.cache
 C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\DeliveryApp.sourcelink.json
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\bin\Debug\net10.0-windows\DeliveryApp.exe
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\bin\Debug\net10.0-windows\DeliveryApp.deps.json
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\bin\Debug\net10.0-windows\DeliveryApp.runtimeconfig.json
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\bin\Debug\net10.0-windows\DeliveryApp.dll
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\bin\Debug\net10.0-windows\DeliveryApp.pdb
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\DeliveryApp.dll
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\refint\DeliveryApp.dll
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\DeliveryApp.pdb
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\DeliveryApp.genruntimeconfig.cache
+C:\Users\Kiril\Documents\GitHub\PKS_RPA_Web\DeliveryApp\obj\Debug\net10.0-windows\ref\DeliveryApp.dll

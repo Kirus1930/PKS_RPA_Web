@@ -1,22 +1,20 @@
 using System;
 using System.Data;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace DeliveryApp
 {
-    public partial class Form1 : Form
+    public class Form1 : Form
     {
+        private Label lblPackage, lblDriver, lblDeliveryType, lblPriority;
+        private TextBox txtPackage, txtDriver;
+        private ComboBox cboDeliveryType, cboPriority;
+        private Button btnAdd, btnClear;
+        private DataGridView dgvDeliveries;
+
         private DataTable deliveriesTable;
         private int nextId = 1;
-
-        // Элементы управления (создаются дизайнером или вручную)
-        private TextBox txtPackage;
-        private TextBox txtDriver;
-        private ComboBox cboDeliveryType;
-        private ComboBox cboPriority;
-        private Button btnAdd;
-        private Button btnClear;
-        private DataGridView dgvDeliveries;
 
         public Form1()
         {
@@ -27,62 +25,77 @@ namespace DeliveryApp
 
         private void InitializeComponent()
         {
-            this.txtPackage = new TextBox();
-            this.txtDriver = new TextBox();
-            this.cboDeliveryType = new ComboBox();
-            this.cboPriority = new ComboBox();
-            this.btnAdd = new Button();
-            this.btnClear = new Button();
-            this.dgvDeliveries = new DataGridView();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvDeliveries)).BeginInit();
-            this.SuspendLayout();
+            // Настройка формы
+            this.Text = "Delivery Registration System";
+            this.Size = new Size(800, 550);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 
-            // txtPackage
-            this.txtPackage.Location = new System.Drawing.Point(30, 30);
-            this.txtPackage.Size = new System.Drawing.Size(200, 23);
-            this.txtPackage.TextChanged += new EventHandler(this.OnInputChanged);
+            // ========== Метки и поля ввода ==========
+            // Package
+            lblPackage = new Label() { Text = "Package:", Location = new Point(30, 30), Size = new Size(100, 25) };
+            txtPackage = new TextBox() { Location = new Point(140, 30), Size = new Size(220, 25) };
 
-            // txtDriver
-            this.txtDriver.Location = new System.Drawing.Point(30, 70);
-            this.txtDriver.Size = new System.Drawing.Size(200, 23);
-            this.txtDriver.TextChanged += new EventHandler(this.OnInputChanged);
+            // Driver
+            lblDriver = new Label() { Text = "Driver:", Location = new Point(30, 70), Size = new Size(100, 25) };
+            txtDriver = new TextBox() { Location = new Point(140, 70), Size = new Size(220, 25) };
 
-            // cboDeliveryType
-            this.cboDeliveryType.Location = new System.Drawing.Point(30, 110);
-            this.cboDeliveryType.Size = new System.Drawing.Size(200, 23);
-            this.cboDeliveryType.DropDownStyle = ComboBoxStyle.DropDownList;
-            this.cboDeliveryType.Items.AddRange(new object[] { "Standard", "Express", "Same-day" });
-            this.cboDeliveryType.SelectedIndexChanged += new EventHandler(this.OnInputChanged);
+            // Delivery Type
+            lblDeliveryType = new Label() { Text = "Delivery Type:", Location = new Point(30, 110), Size = new Size(100, 25) };
+            cboDeliveryType = new ComboBox()
+            {
+                Location = new Point(140, 110),
+                Size = new Size(220, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            cboDeliveryType.Items.AddRange(new object[] { "Standard", "Express", "Same-day" });
 
-            // cboPriority
-            this.cboPriority.Location = new System.Drawing.Point(30, 150);
-            this.cboPriority.Size = new System.Drawing.Size(200, 23);
-            this.cboPriority.DropDownStyle = ComboBoxStyle.DropDownList;
-            this.cboPriority.Items.AddRange(new object[] { "Low", "Medium", "High" });
-            this.cboPriority.SelectedIndexChanged += new EventHandler(this.OnInputChanged);
+            // Priority
+            lblPriority = new Label() { Text = "Priority:", Location = new Point(30, 150), Size = new Size(100, 25) };
+            cboPriority = new ComboBox()
+            {
+                Location = new Point(140, 150),
+                Size = new Size(220, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            cboPriority.Items.AddRange(new object[] { "Low", "Medium", "High" });
 
-            // btnAdd
-            this.btnAdd.Location = new System.Drawing.Point(30, 200);
-            this.btnAdd.Text = "Add";
-            this.btnAdd.Click += new EventHandler(this.BtnAdd_Click);
+            // ========== Кнопки ==========
+            btnAdd = new Button() { Text = "Add", Location = new Point(140, 200), Size = new Size(100, 30), BackColor = Color.LightGreen };
+            btnClear = new Button() { Text = "Clear Form", Location = new Point(260, 200), Size = new Size(100, 30), BackColor = Color.LightSalmon };
+            btnAdd.Enabled = false;
 
-            // btnClear
-            this.btnClear.Location = new System.Drawing.Point(150, 200);
-            this.btnClear.Text = "Clear Form";
-            this.btnClear.Click += new EventHandler(this.BtnClear_Click);
+            // ========== Таблица ==========
+            dgvDeliveries = new DataGridView()
+            {
+                Location = new Point(30, 260),
+                Size = new Size(720, 230),
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                ReadOnly = true,
+                RowHeadersVisible = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                BackgroundColor = SystemColors.ControlLightLight,
+                BorderStyle = BorderStyle.FixedSingle
+            };
 
-            // dgvDeliveries
-            this.dgvDeliveries.Location = new System.Drawing.Point(30, 250);
-            this.dgvDeliveries.Size = new System.Drawing.Size(700, 200);
-            this.dgvDeliveries.AllowUserToAddRows = false;
-            this.dgvDeliveries.ReadOnly = true;
+            // ========== Добавляем элементы на форму ==========
+            this.Controls.AddRange(new Control[] {
+                lblPackage, txtPackage,
+                lblDriver, txtDriver,
+                lblDeliveryType, cboDeliveryType,
+                lblPriority, cboPriority,
+                btnAdd, btnClear,
+                dgvDeliveries
+            });
 
-            // Form1
-            this.ClientSize = new System.Drawing.Size(800, 500);
-            this.Controls.AddRange(new Control[] { txtPackage, txtDriver, cboDeliveryType, cboPriority, btnAdd, btnClear, dgvDeliveries });
-            this.Text = "Delivery Registration";
-            ((System.ComponentModel.ISupportInitialize)(this.dgvDeliveries)).EndInit();
-            this.ResumeLayout(false);
+            // ========== Подписка на события ==========
+            txtPackage.TextChanged += OnInputChanged;
+            txtDriver.TextChanged += OnInputChanged;
+            cboDeliveryType.SelectedIndexChanged += OnInputChanged;
+            cboPriority.SelectedIndexChanged += OnInputChanged;
+            btnAdd.Click += BtnAdd_Click;
+            btnClear.Click += BtnClear_Click;
         }
 
         private void SetupDataTable()
@@ -95,6 +108,14 @@ namespace DeliveryApp
             deliveriesTable.Columns.Add("Priority", typeof(string));
             deliveriesTable.Columns.Add("Status", typeof(string));
             dgvDeliveries.DataSource = deliveriesTable;
+
+            // Настройка внешнего вида таблицы
+            dgvDeliveries.Columns["ID"].Width = 50;
+            dgvDeliveries.Columns["Package"].Width = 120;
+            dgvDeliveries.Columns["Driver"].Width = 120;
+            dgvDeliveries.Columns["Delivery Type"].Width = 100;
+            dgvDeliveries.Columns["Priority"].Width = 80;
+            dgvDeliveries.Columns["Status"].Width = 80;
         }
 
         private void OnInputChanged(object sender, EventArgs e)
@@ -115,7 +136,6 @@ namespace DeliveryApp
 
         private void BtnAdd_Click(object sender, EventArgs e)
         {
-            // Добавление записи в таблицу
             DataRow newRow = deliveriesTable.NewRow();
             newRow["ID"] = nextId++;
             newRow["Package"] = txtPackage.Text.Trim();
@@ -124,10 +144,6 @@ namespace DeliveryApp
             newRow["Priority"] = cboPriority.SelectedItem.ToString();
             newRow["Status"] = "New";
             deliveriesTable.Rows.Add(newRow);
-
-            // Очистка формы (опционально, но по условию Clear Form отдельно)
-            // Здесь не очищаем автоматически, чтобы можно было быстро добавить похожую запись
-            // Пользователь использует кнопку Clear для очистки.
         }
 
         private void BtnClear_Click(object sender, EventArgs e)
@@ -136,7 +152,7 @@ namespace DeliveryApp
             txtDriver.Clear();
             cboDeliveryType.SelectedIndex = -1;
             cboPriority.SelectedIndex = -1;
-            UpdateAddButtonState();
+            // Кнопка Add станет неактивной автоматически через OnInputChanged
         }
     }
 }

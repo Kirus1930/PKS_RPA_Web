@@ -3,16 +3,21 @@ using System;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using Microsoft.VisualBasic; // добавьте ссылку на Microsoft.VisualBasic
 
 namespace DeliveryApp
 {
     public class Form1 : Form
     {
+        // Существующие элементы
         private Label lblPackage, lblDriver, lblDeliveryType, lblPriority;
         private TextBox txtPackage, txtDriver;
         private ComboBox cboDeliveryType, cboPriority;
         private Button btnAdd, btnClear;
         private DataGridView dgvDeliveries;
+
+        // Новые кнопки
+        private Button btnDispatch, btnAssignDriver;
 
         private DataTable deliveriesTable;
         private int nextId = 1;
@@ -22,17 +27,17 @@ namespace DeliveryApp
             InitializeComponent();
             SetupDataTable();
             UpdateAddButtonState();
-            this.Load += Form1_Load;  // подписываемся на событие загрузки формы
+            this.Load += Form1_Load;
         }
 
         private void InitializeComponent()
         {
             this.Text = "Delivery Registration System";
-            this.Size = new Size(800, 550);
+            this.Size = new Size(850, 650);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 
-            // Метки
+            // Поля ввода (как ранее)
             lblPackage = new Label() { Text = "Package:", Location = new Point(30, 30), Size = new Size(100, 25) };
             txtPackage = new TextBox() { Location = new Point(140, 30), Size = new Size(220, 25) };
 
@@ -57,41 +62,50 @@ namespace DeliveryApp
             };
             cboPriority.Items.AddRange(new object[] { "Low", "Medium", "High" });
 
-            // Кнопки
+            // Кнопки (старые)
             btnAdd = new Button() { Text = "Add", Location = new Point(140, 200), Size = new Size(100, 30), BackColor = Color.LightGreen, Enabled = false };
             btnClear = new Button() { Text = "Clear Form", Location = new Point(260, 200), Size = new Size(100, 30), BackColor = Color.LightSalmon };
+
+            // НОВЫЕ КНОПКИ
+            btnDispatch = new Button() { Text = "Dispatch Delivery", Location = new Point(400, 200), Size = new Size(120, 30), BackColor = Color.LightBlue, Enabled = false };
+            btnAssignDriver = new Button() { Text = "Assign Driver", Location = new Point(540, 200), Size = new Size(100, 30), BackColor = Color.LightCoral, Enabled = false };
 
             // Таблица
             dgvDeliveries = new DataGridView()
             {
                 Location = new Point(30, 260),
-                Size = new Size(720, 230),
+                Size = new Size(780, 300),
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 ReadOnly = true,
                 RowHeadersVisible = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 BackgroundColor = SystemColors.ControlLightLight,
-                BorderStyle = BorderStyle.FixedSingle
+                BorderStyle = BorderStyle.FixedSingle,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false
             };
 
-            // Добавляем элементы
+            // Добавление элементов
             this.Controls.AddRange(new Control[] {
                 lblPackage, txtPackage,
                 lblDriver, txtDriver,
                 lblDeliveryType, cboDeliveryType,
                 lblPriority, cboPriority,
-                btnAdd, btnClear,
+                btnAdd, btnClear, btnDispatch, btnAssignDriver,
                 dgvDeliveries
             });
 
-            // События
+            // Подписка событий
             txtPackage.TextChanged += OnInputChanged;
             txtDriver.TextChanged += OnInputChanged;
             cboDeliveryType.SelectedIndexChanged += OnInputChanged;
             cboPriority.SelectedIndexChanged += OnInputChanged;
             btnAdd.Click += BtnAdd_Click;
             btnClear.Click += BtnClear_Click;
+            btnDispatch.Click += BtnDispatch_Click;
+            btnAssignDriver.Click += BtnAssignDriver_Click;
+            dgvDeliveries.SelectionChanged += DgvDeliveries_SelectionChanged;
         }
 
         private void SetupDataTable()
@@ -108,7 +122,7 @@ namespace DeliveryApp
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // Настройка ширины колонок после того, как форма загрузилась и колонки созданы
+            // Настройка ширины колонок
             if (dgvDeliveries.Columns.Contains("ID"))
                 dgvDeliveries.Columns["ID"].Width = 50;
             if (dgvDeliveries.Columns.Contains("Package"))
@@ -155,6 +169,63 @@ namespace DeliveryApp
             txtDriver.Clear();
             cboDeliveryType.SelectedIndex = -1;
             cboPriority.SelectedIndex = -1;
+        }
+
+        // НОВОЕ: обновление состояния кнопок Dispatch и Assign Driver
+        private void UpdateActionButtonsState()
+        {
+            bool rowSelected = dgvDeliveries.SelectedRows.Count > 0;
+            btnAssignDriver.Enabled = rowSelected;
+            if (rowSelected)
+            {
+                DataGridViewRow row = dgvDeliveries.SelectedRows[0];
+                string status = row.Cells["Status"].Value?.ToString();
+                btnDispatch.Enabled = (status != "Dispatched");
+            }
+            else
+            {
+                btnDispatch.Enabled = false;
+            }
+        }
+
+        // Событие выбора строки
+        private void DgvDeliveries_SelectionChanged(object sender, EventArgs e)
+        {
+            UpdateActionButtonsState();
+        }
+
+        // Обработчик Dispatch Delivery
+        private void BtnDispatch_Click(object sender, EventArgs e)
+        {
+            if (dgvDeliveries.SelectedRows.Count == 0) return;
+            DataGridViewRow row = dgvDeliveries.SelectedRows[0];
+            // Проверка статуса (на всякий случай)
+            if (row.Cells["Status"].Value?.ToString() == "Dispatched")
+            {
+                MessageBox.Show("Эта доставка уже отправлена.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            row.Cells["Status"].Value = "Dispatched";
+            // Обновить состояние кнопок после изменения статуса
+            UpdateActionButtonsState();
+        }
+
+        // Обработчик Assign Driver
+        private void BtnAssignDriver_Click(object sender, EventArgs e)
+        {
+            if (dgvDeliveries.SelectedRows.Count == 0) return;
+            DataGridViewRow row = dgvDeliveries.SelectedRows[0];
+            string currentDriver = row.Cells["Driver"].Value?.ToString() ?? "";
+            string newDriver = Interaction.InputBox(
+                "Введите имя водителя:", 
+                "Назначение водителя", 
+                currentDriver, 
+                -1, -1);
+            if (!string.IsNullOrWhiteSpace(newDriver))
+            {
+                row.Cells["Driver"].Value = newDriver.Trim();
+                // Опционально: можно обновить состояние кнопок (хотя оно не меняется от этого)
+            }
         }
     }
 }
